@@ -1,0 +1,84 @@
+CREATE DATABASE IF NOT EXISTS odila_db;
+USE odila_db;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS recovery_codes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT,
+  code VARCHAR(6) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  content VARCHAR(1000),
+  content_type ENUM('pdf', 'video', 'audio', 'youtube', 'image') NULL,
+  file_path VARCHAR(1000),
+  file_name VARCHAR(255),
+  file_size BIGINT,
+  mime_type VARCHAR(100),
+  usage_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS media_files (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  question_id INT,
+  file_path VARCHAR(1000) NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_size BIGINT NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS chats (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT,
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS chat_questions (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  chat_id INT,
+  question_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+  FOREIGN KEY (question_id) REFERENCES questions(id)
+);
+
+CREATE TABLE IF NOT EXISTS user_settings (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT UNIQUE,
+  dark_mode BOOLEAN DEFAULT TRUE,
+  voice_enabled BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS visits (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  visitor_ip VARCHAR(45),
+  visit_date DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_visit (visitor_ip, visit_date)
+);
+
+CREATE TABLE IF NOT EXISTS activity_log (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  action VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
