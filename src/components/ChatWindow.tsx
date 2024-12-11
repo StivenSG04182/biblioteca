@@ -73,7 +73,6 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
   }, [answer]);
 
   useEffect(() => {
-    // Auto-play video content after 1 second
     if (videoRef.current && contentType === 'video') {
       setTimeout(() => {
         videoRef.current?.play().catch(error => {
@@ -135,7 +134,6 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
         console.error('Error al actualizar el uso de la pregunta');
       }
 
-      // Reproducir respuesta automáticamente si no hay contenido multimedia
       if (!selectedQ.content_type || (selectedQ.content_type !== 'audio' && selectedQ.content_type !== 'video' && selectedQ.content_type !== 'youtube')) {
         speakAnswer(selectedQ.answer);
       }
@@ -160,11 +158,11 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
       switch (contentType?.toLowerCase()) {
         case 'video':
           return (
-            <div className="w-full max-w-3xl mx-auto mb-6">
+            <div className="w-full max-w-5xl mx-auto mb-6">
               <video
                 ref={videoRef}
                 controls
-                className="w-full rounded-lg shadow-lg"
+                className="w-full h-auto rounded-lg shadow-lg"
                 onError={() => setContentError('Error al cargar el video')}
               >
                 <source src={fullUrl} type={mimeType || 'video/mp4'} />
@@ -179,19 +177,21 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
             return null;
           }
           return (
-            <div className="w-full max-w-3xl mx-auto mb-6 aspect-w-16 aspect-h-9">
-              <iframe
-                ref={iframeRef}
-                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                className="w-full h-[315px] rounded-lg shadow-lg"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+            <div className="w-full max-w-5xl mx-auto mb-6">
+              <div className="aspect-w-16 aspect-h-9">
+                <iframe
+                  ref={iframeRef}
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                  className="w-full h-[600px] rounded-lg shadow-lg"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
             </div>
           );
         case 'audio':
           return (
-            <div className="w-full max-w-3xl mx-auto mb-6">
+            <div className="w-full max-w-5xl mx-auto mb-6">
               <audio
                 controls
                 autoPlay
@@ -205,21 +205,21 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
           );
         case 'pdf':
           return (
-            <div className="w-full max-w-3xl mx-auto mb-6 h-[500px]">
+            <div className="w-full max-w-5xl mx-auto mb-6">
               <iframe
                 src={fullUrl}
-                className="w-full h-full rounded-lg shadow-lg"
+                className="w-full h-[600px] rounded-lg shadow-lg"
                 onError={() => setContentError('Error al cargar el PDF')}
               />
             </div>
           );
         case 'image':
           return (
-            <div className="w-full max-w-3xl mx-auto mb-6">
+            <div className="w-full max-w-5xl mx-auto mb-6">
               <img
                 src={fullUrl}
                 alt="Contenido de la pregunta"
-                className="w-full rounded-lg shadow-lg"
+                className="w-full h-auto rounded-lg shadow-lg"
                 onError={() => setContentError('Error al cargar la imagen')}
               />
             </div>
@@ -240,7 +240,7 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
         <div className="text-center">
           <MessageSquare className="w-16 h-16 mx-auto mb-4 text-cyan-500" />
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-blue-500 text-transparent bg-clip-text">
-            ODILA
+            Libria
           </h1>
           <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Crea un nuevo chat para iniciar la conversación
@@ -276,7 +276,7 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto p-4">
+        <div className="max-w-5xl mx-auto p-4">
           {contentError ? (
             <div className="flex items-center gap-2 text-red-500 mb-4">
               <AlertCircle className="w-5 h-5" />
@@ -291,7 +291,7 @@ function ChatWindow({ currentChat, isNewChat, onSelectQuestion }: ChatWindowProp
       {answer && (
         <div ref={answerRef} className="h-[300px] overflow-y-auto border-t border-gray-700">
           <div className={`p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-5xl mx-auto">
               <div className="flex justify-between items-center mb-4">
                 <p className={`text-base leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   {answer}
