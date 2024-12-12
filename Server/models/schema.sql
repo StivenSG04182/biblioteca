@@ -1,83 +1,92 @@
-CREATE DATABASE IF NOT EXISTS odila_db;
-USE odila_db;
-
-CREATE TABLE IF NOT EXISTS users (
-  id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS recovery_codes (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT,
+CREATE TABLE recovery_codes (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
   code VARCHAR(6) NOT NULL,
   expires_at TIMESTAMP NOT NULL,
-  used BOOLEAN DEFAULT FALSE,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  used BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS questions (
-  id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE questions (
+  id SERIAL PRIMARY KEY,
   question TEXT NOT NULL,
   answer TEXT NOT NULL,
   content VARCHAR(1000),
-  content_type ENUM('pdf', 'video', 'audio', 'youtube', 'image') NULL,
+  content_type VARCHAR(50) CHECK (content_type IN ('pdf', 'video', 'audio', 'youtube', 'image')),
   file_path VARCHAR(1000),
   file_name VARCHAR(255),
   file_size BIGINT,
   mime_type VARCHAR(100),
-  usage_count INT DEFAULT 0,
+  usage_count INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS media_files (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  question_id INT,
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER questions_updated_at
+  BEFORE UPDATE ON questions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
+
+CREATE TABLE media_files (
+  id SERIAL PRIMARY KEY,
+  question_id INTEGER REFERENCES questions(id) ON DELETE CASCADE,
   file_path VARCHAR(1000) NOT NULL,
   file_name VARCHAR(255) NOT NULL,
   file_size BIGINT NOT NULL,
   mime_type VARCHAR(100) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS chats (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT,
+CREATE TABLE chats (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
   title VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS chat_questions (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  chat_id INT,
-  question_id INT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
-  FOREIGN KEY (question_id) REFERENCES questions(id)
+CREATE TABLE chat_questions (
+  id SERIAL PRIMARY KEY,
+  chat_id INTEGER REFERENCES chats(id) ON DELETE CASCADE,
+  question_id INTEGER REFERENCES questions(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS user_settings (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT UNIQUE,
+CREATE TABLE user_settings (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER UNIQUE REFERENCES users(id),
   dark_mode BOOLEAN DEFAULT TRUE,
-  voice_enabled BOOLEAN DEFAULT TRUE,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  voice_enabled BOOLEAN DEFAULT TRUE
 );
 
-CREATE TABLE IF NOT EXISTS visits (
-  id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE visits (
+  id SERIAL PRIMARY KEY,
   visitor_ip VARCHAR(45),
   visit_date DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY unique_visit (visitor_ip, visit_date)
+  UNIQUE(visitor_ip, visit_date)
 );
 
-CREATE TABLE IF NOT EXISTS activity_log (
-  id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE activity_log (
+  id SERIAL PRIMARY KEY,
   action VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO users (id, email, password, created_at) 
+VALUES 
+(1, 'biblioteca9101@sena.edu.co', '123456', CURRENT_TIMESTAMP),
+(2, 'stivensg04182@gmail.com', '987654', CURRENT_TIMESTAMP);
