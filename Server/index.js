@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -12,7 +11,17 @@ const db = require('./config/database');
 
 const app = express();
 
-app.use(cors());
+// CORS configuration
+app.use(cors({
+  origin: [
+    'https://gleaming-florentine-d99de8.netlify.app',
+    'http://localhost:5173' // For local development
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Serve uploaded files from the public directory
@@ -24,7 +33,7 @@ app.use(async (req, res, next) => {
     const today = new Date().toISOString().split('T')[0];
     try {
       await db.query(
-        'INSERT IGNORE INTO visits (visitor_ip, visit_date) VALUES (?, ?)',
+        'INSERT INTO visits (visitor_ip, visit_date) VALUES ($1, $2) ON CONFLICT DO NOTHING',
         [req.ip, today]
       );
     } catch (error) {
@@ -34,12 +43,9 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Enable CORS for file uploads
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
 });
 
 // Routes
@@ -52,9 +58,9 @@ app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error del servidor:', err);
+  console.error('Server Error:', err);
   res.status(500).json({ 
-    message: 'Error del servidor',
+    message: 'Server Error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
@@ -62,5 +68,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
