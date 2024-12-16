@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node index.js",
-    "add-users": "node scripts/add-users.js"
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -19,5 +18,8 @@
     "nodemailer": "^6.9.1",
     "pg": "^8.11.3",
     "pg-pool": "^3.6.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }

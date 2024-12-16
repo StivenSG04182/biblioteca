@@ -1,13 +1,22 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const authRoutes = require('./routes/auth');
-const questionRoutes = require('./routes/questions');
-const chatRoutes = require('./routes/chats');
-const settingsRoutes = require('./routes/settings');
-const statsRoutes = require('./routes/stats');
-const userRoutes = require('./routes/users');
-const db = require('./config/database');
+import express from 'express';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
+import questionRoutes from './routes/questions.js';
+import chatRoutes from './routes/chats.js';
+import settingsRoutes from './routes/settings.js';
+import statsRoutes from './routes/stats.js';
+import userRoutes from './routes/users.js';
+import { pool } from './config/database.js';
+
+// Load environment variables
+dotenv.config();
+
+// ES Module compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -15,7 +24,7 @@ const app = express();
 app.use(cors({
   origin: [
     'https://gleaming-florentine-d99de8.netlify.app',
-    'http://localhost:5173' // For local development
+    'http://localhost:5173'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -23,16 +32,14 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
-// Serve uploaded files from the public directory
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/uploads', express.static(join(__dirname, 'public', 'uploads')));
 
 // Track visits middleware
 app.use(async (req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/api/')) {
     const today = new Date().toISOString().split('T')[0];
     try {
-      await db.query(
+      await pool.query(
         'INSERT INTO visits (visitor_ip, visit_date) VALUES ($1, $2) ON CONFLICT DO NOTHING',
         [req.ip, today]
       );
@@ -43,11 +50,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' });
-});
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes);
@@ -55,6 +57,11 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/users', userRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
