@@ -6,22 +6,20 @@ import { pool } from '../config/database.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function migrate() {
+export async function migrate() {
   const client = await pool.connect();
   try {
     const schemaPath = path.join(__dirname, '..', 'models', 'schema.sql');
     const schema = await fs.readFile(schemaPath, 'utf-8');
 
     console.log('Starting migration...');
-    console.log('Schema file content:', schema);
 
     await client.query('BEGIN');
     
-    // Split the schema into individual statements
     const statements = schema.split(';').filter(stmt => stmt.trim() !== '');
     
     for (let statement of statements) {
-      console.log('Executing statement:', statement);
+      console.log('Executing statement:', statement.trim());
       await client.query(statement);
     }
     
@@ -29,7 +27,6 @@ async function migrate() {
 
     console.log('Migration completed successfully');
     
-    // Verify tables
     const tablesResult = await client.query(`
       SELECT table_name 
       FROM information_schema.tables 
@@ -37,17 +34,25 @@ async function migrate() {
     `);
     console.log('Existing tables:', tablesResult.rows.map(row => row.table_name));
 
+    return true;
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Migration failed:', error);
-    throw error;
+    return false;
   } finally {
     client.release();
   }
 }
 
-migrate().catch((error) => {
-  console.error('Unhandled error during migration:', error);
-  process.exit(1);
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  migrate().then(success => {
+    if (success) {
+      console.log('Migration script completed successfully');
+      process.exit(0);
+    } else {
+      console.error('Migration script failed');
+      process.exit(1);
+    }
+  });
+}
 
