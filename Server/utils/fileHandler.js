@@ -1,7 +1,11 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { pool as db } from '../config/database.js';
+import { fileURLToPath } from 'url';
 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
