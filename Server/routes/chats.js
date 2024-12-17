@@ -1,6 +1,6 @@
 import express from 'express';
 import db from '../config/database.js';
-import authMiddleware from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 // Create new chat
 router.post('/', async (req, res) => {
