@@ -1,9 +1,16 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
-import { pool } from '../config/database.js';
+import { fileURLToPath } from 'url';
+import { pool as db } from '../config/database.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { saveFile, deleteFile, getFileInfo } from '../utils/fileHandler.js';
+
+// Reemplazar __dirname en módulos ES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const router = express.Router();
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
