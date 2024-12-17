@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../config/database');
-const authMiddleware = require('../middleware/auth');
+import { pool } from '../config/database.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 // Get user settings
 router.get('/', authMiddleware, async (req, res) => {
@@ -44,4 +44,4 @@ router.put('/', authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

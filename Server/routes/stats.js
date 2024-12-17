@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../config/database');
+import { pool } from '../config/database.js';
 
 // Track visitor
 const trackVisit = async (ip) => {
@@ -73,4 +73,4 @@ router.get('/', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

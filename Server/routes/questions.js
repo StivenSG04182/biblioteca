@@ -1,10 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const db = require('../config/database');
-const authMiddleware = require('../middleware/auth');
-const { saveFile, deleteFile, getFileInfo } = require('../utils/fileHandler');
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import { pool } from '../config/database.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { saveFile, deleteFile, getFileInfo } from '../utils/fileHandler.js';
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -202,4 +201,4 @@ router.post('/:id/usage', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

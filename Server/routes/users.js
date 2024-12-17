@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const db = require('../config/database');
-const authMiddleware = require('../middleware/auth');
+import bcrypt from 'bcryptjs';
+import { pool } from '../config/database.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 // Update user email
 router.put('/email', authMiddleware, async (req, res) => {
@@ -82,4 +82,4 @@ router.put('/password', authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
