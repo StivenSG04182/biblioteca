@@ -1,6 +1,6 @@
-const path = require('path');
-const fs = require('fs').promises;
-const db = require('../config/database');
+import path from 'path';
+import fs from'fs';
+import { pool } from '../config/database.js';
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
