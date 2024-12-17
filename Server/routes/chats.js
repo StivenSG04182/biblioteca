@@ -1,5 +1,5 @@
 import express from 'express';
-import db from '../config/database.js';
+import { pool } from '../config/database.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 // Create new chat
