@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { pool as db } from '../config/database.js';
+import { pool } from '../config/database.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { saveFile, deleteFile, getFileInfo } from '../utils/fileHandler.js';
 
@@ -71,7 +71,7 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
 // Get all questions with file info
 router.get('/', async (req, res) => {
   try {
-    const [questions] = await db.query(`
+    const [questions] = await pool.query(`
       SELECT q.*, m.file_path, m.file_name, m.mime_type
       FROM questions q
       LEFT JOIN media_files m ON q.id = m.question_id
@@ -89,7 +89,7 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const { question, answer, content, content_type } = req.body;
     
-    const [result] = await db.query(
+    const [result] = await pool.query(
       'INSERT INTO questions (question, answer, content, content_type) VALUES (?, ?, ?, ?)',
       [question, answer, content || null, content_type || null]
     );
@@ -98,13 +98,13 @@ router.post('/', authMiddleware, async (req, res) => {
 
     // If there's a file path in content, associate it with the question
     if (content && content_type) {
-      await db.query(
+      await pool.query(
         'UPDATE media_files SET question_id = ? WHERE file_path = ?',
         [questionId, content]
       );
     }
     
-    await db.query(
+    await pool.query(
       'INSERT INTO activity_log (action) VALUES (?)',
       [`Nueva pregunta agregada: ${question}`]
     );
@@ -129,7 +129,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     const questionId = req.params.id;
     
     // Get current question and file info
-    const [currentQuestion] = await db.query(
+    const [currentQuestion] = await pool.query(
       'SELECT * FROM questions WHERE id = ?',
       [questionId]
     );
@@ -142,20 +142,20 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 
     // Update question
-    await db.query(
+    await pool.query(
       'UPDATE questions SET question = ?, answer = ?, content = ?, content_type = ? WHERE id = ?',
       [question, answer, content || null, content_type || null, questionId]
     );
 
     // If there's a new file path in content, update its association
     if (content && content_type) {
-      await db.query(
+      await pool.query(
         'UPDATE media_files SET question_id = ? WHERE file_path = ?',
         [questionId, content]
       );
     }
     
-    await db.query(
+    await pool.query(
       'INSERT INTO activity_log (action) VALUES (?)',
       [`Pregunta actualizada: ${question}`]
     );
@@ -170,7 +170,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // Delete question
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const [question] = await db.query(
+    const [question] = await pool.query(
       'SELECT * FROM questions WHERE id = ?',
       [req.params.id]
     );
@@ -180,9 +180,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       await deleteFile(fileInfo.file_path);
     }
     
-    await db.query('DELETE FROM questions WHERE id = ?', [req.params.id]);
+    await pool.query('DELETE FROM questions WHERE id = ?', [req.params.id]);
     
-    await db.query(
+    await pool.query(
       'INSERT INTO activity_log (action) VALUES (?)',
       [`Pregunta eliminada: ${question[0]?.question}`]
     );
@@ -197,7 +197,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 // Track question usage
 router.post('/:id/usage', async (req, res) => {
   try {
-    await db.query(
+    await pool.query(
       'UPDATE questions SET usage_count = usage_count + 1 WHERE id = ?',
       [req.params.id]
     );
