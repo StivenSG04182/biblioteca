@@ -1,6 +1,7 @@
 import path from 'path';
-import fs from'fs';
-import { pool } from '../config/database.js';
+import fs from 'fs/promises';
+import { pool as db } from '../config/database.js';
+
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
@@ -12,9 +13,8 @@ const ensureUploadDir = async () => {
   }
 };
 
-const saveFile = async (file, questionId) => {
+export const saveFile = async (file, questionId) => {
   await ensureUploadDir();
-
   const fileInfo = {
     originalName: file.originalname,
     fileName: file.filename,
@@ -22,21 +22,18 @@ const saveFile = async (file, questionId) => {
     size: file.size,
     path: `/uploads/${file.filename}`
   };
-
   const [result] = await db.query(
     'INSERT INTO media_files (question_id, file_path, file_name, file_size, mime_type) VALUES (?, ?, ?, ?, ?)',
     [questionId, fileInfo.path, fileInfo.originalName, fileInfo.size, fileInfo.mimeType]
   );
-
   return {
     id: result.insertId,
     ...fileInfo
   };
 };
 
-const deleteFile = async (filePath) => {
+export const deleteFile = async (filePath) => {
   if (!filePath) return;
-
   const fullPath = path.join(__dirname, '..', 'public', filePath);
   try {
     await fs.access(fullPath);
@@ -47,16 +44,10 @@ const deleteFile = async (filePath) => {
   }
 };
 
-const getFileInfo = async (questionId) => {
+export const getFileInfo = async (questionId) => {
   const [files] = await db.query(
     'SELECT * FROM media_files WHERE question_id = ?',
     [questionId]
   );
   return files[0];
-};
-
-module.exports = {
-  saveFile,
-  deleteFile,
-  getFileInfo
 };
