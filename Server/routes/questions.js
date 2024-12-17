@@ -71,13 +71,13 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
 // Get all questions with file info
 router.get('/', async (req, res) => {
   try {
-    const [questions] = await pool.query(`
+    const questions = await pool.query(`
       SELECT q.*, m.file_path, m.file_name, m.mime_type
       FROM questions q
       LEFT JOIN media_files m ON q.id = m.question_id
       ORDER BY q.created_at DESC
     `);
-    res.json(questions);
+    res.json(questions.rows);
   } catch (error) {
     console.error('Error al obtener preguntas:', error);
     res.status(500).json({ message: 'Error del servidor' });
@@ -89,23 +89,23 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const { question, answer, content, content_type } = req.body;
     
-    const [result] = await pool.query(
-      'INSERT INTO questions (question, answer, content, content_type) VALUES (?, ?, ?, ?)',
+    const result = await pool.query(
+      'INSERT INTO questions (question, answer, content, content_type) VALUES ($1, $2, $3, $4) RETURNING id',
       [question, answer, content || null, content_type || null]
     );
 
-    const questionId = result.insertId;
+    const questionId = result.rows[0].id;
 
     // If there's a file path in content, associate it with the question
     if (content && content_type) {
       await pool.query(
-        'UPDATE media_files SET question_id = ? WHERE file_path = ?',
+        'UPDATE media_files SET question_id = $1 WHERE file_path = $2',
         [questionId, content]
       );
     }
     
     await pool.query(
-      'INSERT INTO activity_log (action) VALUES (?)',
+      'INSERT INTO activity_log (action) VALUES ($1)',
       [`Nueva pregunta agregada: ${question}`]
     );
     
@@ -129,8 +129,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
     const questionId = req.params.id;
     
     // Get current question and file info
-    const [currentQuestion] = await pool.query(
-      'SELECT * FROM questions WHERE id = ?',
+    const currentQuestion = await pool.query(
+      'SELECT * FROM questions WHERE id = $1',
       [questionId]
     );
 
@@ -143,20 +143,20 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     // Update question
     await pool.query(
-      'UPDATE questions SET question = ?, answer = ?, content = ?, content_type = ? WHERE id = ?',
+      'UPDATE questions SET question = $1, answer = $2, content = $3, content_type = $4 WHERE id = $5',
       [question, answer, content || null, content_type || null, questionId]
     );
 
     // If there's a new file path in content, update its association
     if (content && content_type) {
       await pool.query(
-        'UPDATE media_files SET question_id = ? WHERE file_path = ?',
+        'UPDATE media_files SET question_id = $1 WHERE file_path = $2',
         [questionId, content]
       );
     }
     
     await pool.query(
-      'INSERT INTO activity_log (action) VALUES (?)',
+      'INSERT INTO activity_log (action) VALUES ($1)',
       [`Pregunta actualizada: ${question}`]
     );
     
@@ -170,8 +170,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // Delete question
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const [question] = await pool.query(
-      'SELECT * FROM questions WHERE id = ?',
+    const question = await pool.query(
+      'SELECT * FROM questions WHERE id = $1',
       [req.params.id]
     );
 
@@ -180,11 +180,11 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       await deleteFile(fileInfo.file_path);
     }
     
-    await pool.query('DELETE FROM questions WHERE id = ?', [req.params.id]);
+    await pool.query('DELETE FROM questions WHERE id = $1', [req.params.id]);
     
     await pool.query(
-      'INSERT INTO activity_log (action) VALUES (?)',
-      [`Pregunta eliminada: ${question[0]?.question}`]
+      'INSERT INTO activity_log (action) VALUES ($1)',
+      [`Pregunta eliminada: ${question.rows[0]?.question}`]
     );
     
     res.json({ message: 'Pregunta eliminada' });
@@ -198,7 +198,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 router.post('/:id/usage', async (req, res) => {
   try {
     await pool.query(
-      'UPDATE questions SET usage_count = usage_count + 1 WHERE id = ?',
+      'UPDATE questions SET usage_count = usage_count + 1 WHERE id = $1',
       [req.params.id]
     );
     res.json({ message: 'Uso registrado' });

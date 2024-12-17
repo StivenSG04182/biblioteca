@@ -1,12 +1,13 @@
 import express from 'express';
-const router = express.Router();
 import { pool } from '../config/database.js';
+
+const router = express.Router();
 
 // Track visitor
 const trackVisit = async (ip) => {
   const today = new Date().toISOString().split('T')[0];
-  await db.query(
-    'INSERT IGNORE INTO visits (visitor_ip, visit_date) VALUES (?, ?)',
+  await pool.query(
+    'INSERT INTO visits (visitor_ip, visit_date) VALUES ($1, $2) ON CONFLICT DO NOTHING',
     [ip, today]
   );
 };
@@ -17,17 +18,17 @@ router.get('/', async (req, res) => {
     await trackVisit(req.ip);
 
     // Get total unique visitors
-    const [visitsResult] = await db.query(
+    const visitsResult = await pool.query(
       'SELECT COUNT(DISTINCT visitor_ip) as total FROM visits'
     );
     
     // Get total questions
-    const [questionsResult] = await db.query(
+    const questionsResult = await pool.query(
       'SELECT COUNT(*) as total FROM questions'
     );
     
     // Get most asked question
-    const [mostAskedResult] = await db.query(`
+    const mostAskedResult = await pool.query(`
       SELECT question, usage_count 
       FROM questions 
       WHERE usage_count = (
@@ -38,7 +39,7 @@ router.get('/', async (req, res) => {
     `);
     
     // Get least asked question
-    const [leastAskedResult] = await db.query(`
+    const leastAskedResult = await pool.query(`
       SELECT question, usage_count 
       FROM questions 
       WHERE usage_count = (
@@ -50,22 +51,22 @@ router.get('/', async (req, res) => {
     `);
     
     // Get recent activity with formatted timestamps
-    const [activityResult] = await db.query(`
+    const activityResult = await pool.query(`
       SELECT 
         id,
         action,
-        DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as timestamp
+        to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as timestamp
       FROM activity_log 
       ORDER BY created_at DESC 
       LIMIT 5
     `);
 
     res.json({
-      totalVisits: visitsResult[0].total,
-      totalQuestions: questionsResult[0].total,
-      mostAskedQuestion: mostAskedResult[0]?.question || 'No questions asked yet',
-      leastAskedQuestion: leastAskedResult[0]?.question || 'No questions asked yet',
-      recentActivity: activityResult
+      totalVisits: visitsResult.rows[0].total,
+      totalQuestions: questionsResult.rows[0].total,
+      mostAskedQuestion: mostAskedResult.rows[0]?.question || 'No questions asked yet',
+      leastAskedQuestion: leastAskedResult.rows[0]?.question || 'No questions asked yet',
+      recentActivity: activityResult.rows
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
