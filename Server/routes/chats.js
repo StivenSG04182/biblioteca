@@ -1,7 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../config/database');
-const authMiddleware = require('../middleware/auth');
+import express from 'express';
+import db from '../config/database.js';
+import authMiddleware from '../middleware/auth.js';
 
 // Create new chat
 router.post('/', async (req, res) => {
@@ -48,4 +47,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
