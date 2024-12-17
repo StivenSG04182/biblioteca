@@ -2,11 +2,11 @@
   "name": "libria-server",
   "version": "1.0.0",
   "description": "Libria Chatbot Server",
-  "main": "index.js",
+  "main": "server/index.js",
   "type": "module",
   "scripts": {
     "start": "node server/scripts/migrate.js && node server/index.js",
-    "dev": "nodemon index.js",
+    "dev": "nodemon server/index.js",
     "migrate": "node server/scripts/migrate.js"
   },
   "dependencies": {
@@ -25,4 +25,3 @@
     "nodemon": "^3.0.2"
   }
 }
-

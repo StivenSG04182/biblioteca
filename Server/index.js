@@ -11,16 +11,13 @@ import statsRoutes from './routes/stats.js';
 import userRoutes from './routes/users.js';
 import { pool } from './config/database.js';
 
-// Load environment variables
 dotenv.config();
 
-// ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 
-// CORS configuration
 app.use(cors({
   origin: [
     'https://gleaming-florentine-d99de8.netlify.app',
@@ -45,12 +42,12 @@ app.use(async (req, res, next) => {
       );
     } catch (error) {
       console.error('Error tracking visit:', error);
+      // Continue execution even if tracking fails
     }
   }
   next();
 });
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/chats', chatRoutes);
@@ -58,7 +55,6 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/users', userRoutes);
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy' });
 });
@@ -76,4 +72,28 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Verify database connection and tables
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+  } else {
+    console.log('Database connection successful. Current time:', res.rows[0].now);
+    
+    // Check if 'visits' table exists
+    pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        AND table_name = 'visits'
+      )
+    `, (err, res) => {
+      if (err) {
+        console.error('Error checking visits table:', err);
+      } else {
+        console.log('Visits table exists:', res.rows[0].exists);
+      }
+    });
+  }
 });
