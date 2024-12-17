@@ -5,8 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node server/scripts/migrate.js && node server/index.js",
+    "dev": "nodemon index.js",
+    "migrate": "node server/scripts/migrate.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -24,3 +25,4 @@
     "nodemon": "^3.0.2"
   }
 }
+
