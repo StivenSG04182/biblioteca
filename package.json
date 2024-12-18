@@ -10,21 +10,36 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.62.8",
+    "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
+    "jwt-decode": "^4.0.0",
     "libria-api": "file:",
+    "lucide-react": "^0.468.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.1",
     "pg": "^8.11.3",
-    "pg-pool": "^3.6.1"
+    "pg-pool": "^3.6.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^7.0.2",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@types/react-query": "^1.2.8",
+    "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
     "nodemon": "^3.0.2",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
     "vite": "^6.0.3"
   }
 }
