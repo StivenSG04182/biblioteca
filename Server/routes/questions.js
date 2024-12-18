@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
-// Configure multer for file upload
+// Configuración de multer para la carga de archivos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
@@ -49,7 +49,7 @@ const upload = multer({
   }
 });
 
-// File upload endpoint
+// Endpoint para cargar archivos
 router.post('/upload', authMiddleware, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -68,7 +68,7 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
   }
 });
 
-// Get all questions with file info
+// Obtener todas las preguntas
 router.get('/', async (req, res) => {
   try {
     const questions = await pool.query(`
@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create question with file
+// Crear una pregunta
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { question, answer, content, content_type } = req.body;
@@ -96,14 +96,13 @@ router.post('/', authMiddleware, async (req, res) => {
 
     const questionId = result.rows[0].id;
 
-    // If there's a file path in content, associate it with the question
     if (content && content_type) {
       await pool.query(
         'UPDATE media_files SET question_id = $1 WHERE file_path = $2',
         [questionId, content]
       );
     }
-    
+
     await pool.query(
       'INSERT INTO activity_log (action) VALUES ($1)',
       [`Nueva pregunta agregada: ${question}`]
@@ -122,44 +121,48 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Update question
+// Actualizar pregunta
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { question, answer, content, content_type } = req.body;
     const questionId = req.params.id;
-    
-    // Get current question and file info
+
     const currentQuestion = await pool.query(
       'SELECT * FROM questions WHERE id = $1',
       [questionId]
     );
 
-    const currentFile = await getFileInfo(questionId);
-
-    // If there's a new file and an old file exists, delete the old one
-    if (currentFile && content && currentFile.file_path !== content) {
-      await deleteFile(currentFile.file_path);
+    if (currentQuestion.rowCount === 0) {
+      return res.status(404).json({ message: 'Pregunta no encontrada' });
     }
 
-    // Update question
+    const currentFile = await getFileInfo(questionId);
+
+    if (currentFile && content && currentFile.file_path !== content) {
+      try {
+        await deleteFile(currentFile.file_path);
+      } catch (fileError) {
+        console.error('Error al eliminar archivo antiguo:', fileError);
+      }
+    }
+
     await pool.query(
       'UPDATE questions SET question = $1, answer = $2, content = $3, content_type = $4 WHERE id = $5',
       [question, answer, content || null, content_type || null, questionId]
     );
 
-    // If there's a new file path in content, update its association
     if (content && content_type) {
       await pool.query(
         'UPDATE media_files SET question_id = $1 WHERE file_path = $2',
         [questionId, content]
       );
     }
-    
+
     await pool.query(
       'INSERT INTO activity_log (action) VALUES ($1)',
       [`Pregunta actualizada: ${question}`]
     );
-    
+
     res.json({ message: 'Pregunta actualizada' });
   } catch (error) {
     console.error('Error al actualizar pregunta:', error);
@@ -167,7 +170,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Delete question
+// Eliminar pregunta
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const question = await pool.query(
@@ -175,18 +178,27 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       [req.params.id]
     );
 
-    const fileInfo = await getFileInfo(req.params.id);
-    if (fileInfo) {
-      await deleteFile(fileInfo.file_path);
+    if (question.rowCount === 0) {
+      return res.status(404).json({ message: 'Pregunta no encontrada' });
     }
-    
+
+    const fileInfo = await getFileInfo(req.params.id);
+
+    if (fileInfo) {
+      try {
+        await deleteFile(fileInfo.file_path);
+      } catch (fileError) {
+        console.error('Error al eliminar archivo:', fileError);
+      }
+    }
+
     await pool.query('DELETE FROM questions WHERE id = $1', [req.params.id]);
-    
+
     await pool.query(
       'INSERT INTO activity_log (action) VALUES ($1)',
-      [`Pregunta eliminada: ${question.rows[0]?.question}`]
+      [`Pregunta eliminada: ${question.rows[0].question}`]
     );
-    
+
     res.json({ message: 'Pregunta eliminada' });
   } catch (error) {
     console.error('Error al eliminar pregunta:', error);
@@ -194,7 +206,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Track question usage
+// Registrar el uso de una pregunta
 router.post('/:id/usage', async (req, res) => {
   try {
     await pool.query(

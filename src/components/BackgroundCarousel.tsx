@@ -4,7 +4,6 @@ const images = [
   '/backgrounds/bg1.jpg',
   '/backgrounds/bg2.jpg',
   '/backgrounds/bg3.jpg',
-  '/backgrounds/bg4.jpg',
 ];
 
 interface BackgroundCarouselProps {
