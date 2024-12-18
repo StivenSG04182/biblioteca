@@ -5,8 +5,8 @@
   "main": "server/index.js",
   "type": "module",
   "scripts": {
-    "start": "node server/scripts/run-with-migration.js",
-    "dev": "nodemon server/scripts/run-with-migration.js",
+    "start": "node server/scripts/start.js",
+    "dev": "nodemon server/scripts/start.js",
     "migrate": "node server/scripts/migrate.js"
   },
   "dependencies": {

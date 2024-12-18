@@ -13,6 +13,7 @@ export async function migrate() {
     const schema = await fs.readFile(schemaPath, 'utf-8');
 
     console.log('Starting migration...');
+    console.log('Schema file content:', schema);
 
     await client.query('BEGIN');
     
