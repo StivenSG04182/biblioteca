@@ -16,11 +16,13 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const cors = cors();
+
 const app = express();
 
 app.use(cors({
   origin: [
-    'https://libriabibliosalada.netlify.app/',
+    'https://libriabibliotecasalada.netlify.app/',
     'http://localhost:5173'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
