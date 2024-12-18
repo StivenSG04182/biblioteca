@@ -1,20 +1,19 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { setupRoutes } from './routes/index.js';
-import { setupMiddleware } from './middleware/index.js';
-import { errorHandler } from './middleware/errorHandler.js';
+import { dirname } from 'path';
+import authRoutes from './routes/auth.js';
+import questionRoutes from './routes/questions.js';
+import chatRoutes from './routes/chats.js';
+import settingsRoutes from './routes/settings.js';
+import statsRoutes from './routes/stats.js';
+import userRoutes from './routes/users.js';
+import { pool } from './config/database.js';
 
-// Load environment variables
-dotenv.config();
-
-// ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Initialize express app
 const app = express();
 
 // CORS configuration
@@ -28,22 +27,47 @@ app.use(cors({
   credentials: true
 }));
 
-// Basic middleware
 app.use(express.json());
-app.use('/uploads', express.static(join(__dirname, '../public/uploads')));
 
-// Setup custom middleware
-setupMiddleware(app);
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
-// Setup routes
-setupRoutes(app);
-
-// Error handling
-app.use(errorHandler);
+// Track visits middleware
+app.use(async (req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      await pool.query(
+        'INSERT INTO visits (visitor_ip, visit_date) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [req.ip, today]
+      );
+    } catch (error) {
+      console.error('Error tracking visit:', error);
+    }
+  }
+  next();
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy' });
+});
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/questions', questionRoutes);
+app.use('/api/chats', chatRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/users', userRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err);
+  res.status(500).json({ 
+    message: 'Server Error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 const PORT = process.env.PORT || 5000;
