@@ -22,6 +22,8 @@
     "pg-pool": "^3.6.1"
   },
   "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@vitejs/plugin-react": "^4.3.4",
     "nodemon": "^3.0.2",
     "vite": "^6.0.3"
   }
