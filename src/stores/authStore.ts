@@ -19,7 +19,7 @@ interface AuthStore {
 }
 
 // Configure axios base URL
-axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+axios.defaults.baseURL = 'https://libria-api.onrender.com';
 
 export const useAuthStore = create<AuthStore>((set) => ({
   token: localStorage.getItem('token'),

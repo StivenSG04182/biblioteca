@@ -16,18 +16,21 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
 const app = express();
 
+/* CORS Middleware */
 app.use(cors({
   origin: [
-    'https://libriabibliotecasalada.netlify.app/',
+    'https://libriabibliotecasalada.netlify.app',
     'http://localhost:5173'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true // Permite cookies y autenticación
 }));
+
+/* Middleware para solicitudes preflight */
+app.options('*', cors());
 
 app.use(express.json());
 app.use('/uploads', express.static(join(__dirname, 'public', 'uploads')));
@@ -43,12 +46,12 @@ app.use(async (req, res, next) => {
       );
     } catch (error) {
       console.error('Error tracking visit:', error);
-      // Continue execution even if tracking fails
     }
   }
   next();
 });
 
+/* Rutas */
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/chats', chatRoutes);
@@ -56,11 +59,12 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/users', userRoutes);
 
+/* Ruta de salud */
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy' });
 });
 
-// Error handling middleware
+/* Manejo de errores */
 app.use((err, req, res, next) => {
   console.error('Server Error:', err);
   res.status(500).json({ 
@@ -74,4 +78,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
