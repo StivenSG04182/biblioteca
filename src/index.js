@@ -19,7 +19,7 @@ const app = express();
 // CORS configuration
 app.use(cors({
   origin: [
-    'https://gleaming-florentine-d99de8.netlify.app',
+    'https://libria-api.onrender.com',
     'http://localhost:5173'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
