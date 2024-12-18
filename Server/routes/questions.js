@@ -127,43 +127,23 @@ router.put('/:id', authMiddleware, async (req, res) => {
     const { question, answer, content, content_type } = req.body;
     const questionId = req.params.id;
 
-    const currentQuestion = await pool.query(
-      'SELECT * FROM questions WHERE id = $1',
-      [questionId]
-    );
-
-    if (currentQuestion.rowCount === 0) {
-      return res.status(404).json({ message: 'Pregunta no encontrada' });
-    }
+    const currentQuestion = await pool.query('SELECT * FROM questions WHERE id = $1', [questionId]);
+    if (currentQuestion.rowCount === 0) return res.status(404).json({ message: 'Pregunta no encontrada' });
 
     const currentFile = await getFileInfo(questionId);
 
+    // Si el archivo cambia, eliminar el anterior
     if (currentFile && content && currentFile.file_path !== content) {
-      try {
-        await deleteFile(currentFile.file_path);
-      } catch (fileError) {
-        console.error('Error al eliminar archivo antiguo:', fileError);
-      }
+      await deleteFile(currentFile.file_path);
     }
 
+    // Actualizar pregunta
     await pool.query(
       'UPDATE questions SET question = $1, answer = $2, content = $3, content_type = $4 WHERE id = $5',
       [question, answer, content || null, content_type || null, questionId]
     );
 
-    if (content && content_type) {
-      await pool.query(
-        'UPDATE media_files SET question_id = $1 WHERE file_path = $2',
-        [questionId, content]
-      );
-    }
-
-    await pool.query(
-      'INSERT INTO activity_log (action) VALUES ($1)',
-      [`Pregunta actualizada: ${question}`]
-    );
-
-    res.json({ message: 'Pregunta actualizada' });
+    res.json({ message: 'Pregunta actualizada correctamente' });
   } catch (error) {
     console.error('Error al actualizar pregunta:', error);
     res.status(500).json({ message: 'Error del servidor' });
@@ -173,33 +153,18 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // Eliminar pregunta
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const question = await pool.query(
-      'SELECT * FROM questions WHERE id = $1',
-      [req.params.id]
-    );
+    const questionId = req.params.id;
 
-    if (question.rowCount === 0) {
-      return res.status(404).json({ message: 'Pregunta no encontrada' });
-    }
+    const question = await pool.query('SELECT * FROM questions WHERE id = $1', [questionId]);
+    if (question.rowCount === 0) return res.status(404).json({ message: 'Pregunta no encontrada' });
 
-    const fileInfo = await getFileInfo(req.params.id);
+    const fileInfo = await getFileInfo(questionId);
+    if (fileInfo) await deleteFile(fileInfo.file_path);
 
-    if (fileInfo) {
-      try {
-        await deleteFile(fileInfo.file_path);
-      } catch (fileError) {
-        console.error('Error al eliminar archivo:', fileError);
-      }
-    }
+    await pool.query('DELETE FROM media_files WHERE question_id = $1', [questionId]);
+    await pool.query('DELETE FROM questions WHERE id = $1', [questionId]);
 
-    await pool.query('DELETE FROM questions WHERE id = $1', [req.params.id]);
-
-    await pool.query(
-      'INSERT INTO activity_log (action) VALUES ($1)',
-      [`Pregunta eliminada: ${question.rows[0].question}`]
-    );
-
-    res.json({ message: 'Pregunta eliminada' });
+    res.json({ message: 'Pregunta eliminada correctamente' });
   } catch (error) {
     console.error('Error al eliminar pregunta:', error);
     res.status(500).json({ message: 'Error del servidor' });
