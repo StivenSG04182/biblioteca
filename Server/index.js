@@ -20,7 +20,7 @@ const app = express();
 
 app.use(cors({
   origin: [
-    'https://gleaming-florentine-d99de8.netlify.app',
+    'https://libriabibliosalada.netlify.app/',
     'http://localhost:5173'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -73,3 +73,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
