@@ -19,7 +19,7 @@ interface AuthStore {
 }
 
 // Configure axios base URL
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
 export const useAuthStore = create<AuthStore>((set) => ({
   token: localStorage.getItem('token'),
