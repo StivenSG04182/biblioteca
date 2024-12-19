@@ -123,62 +123,110 @@ router.post('/', authMiddleware, async (req, res) => {
 
 // Actualizar pregunta
 router.put('/:id', authMiddleware, async (req, res) => {
+  const client = await pool.connect();
+  
   try {
+    await client.query('BEGIN');
+    
     const { question, answer, content, content_type } = req.body;
     const questionId = req.params.id;
 
-    const currentQuestion = await pool.query('SELECT * FROM questions WHERE id = $1', [questionId]);
-    if (currentQuestion.rowCount === 0) return res.status(404).json({ message: 'Pregunta no encontrada' });
+    // Verificar si la pregunta existe
+    const existingQuestion = await client.query(
+      'SELECT * FROM questions WHERE id = $1',
+      [questionId]
+    );
 
-    const currentFile = await getFileInfo(questionId);
-
-    // Si el archivo cambia, eliminar el anterior
-    if (currentFile && content && currentFile.file_path !== content) {
-      await deleteFile(currentFile.file_path);
+    if (existingQuestion.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Pregunta no encontrada' });
     }
 
-    // Actualizar pregunta
-    await pool.query(
-      'UPDATE questions SET question = $1, answer = $2, content = $3, content_type = $4 WHERE id = $5',
+    // Obtener información del archivo actual
+    const currentFile = await client.query(
+      'SELECT * FROM media_files WHERE question_id = $1',
+      [questionId]
+    );
+
+    // Si hay un archivo nuevo y diferente al actual, eliminar el archivo anterior
+    if (currentFile.rows[0] && content && currentFile.rows[0].file_path !== content) {
+      await deleteFile(currentFile.rows[0].file_path);
+    }
+
+    // Actualizar la pregunta
+    await client.query(
+      `UPDATE questions 
+       SET question = $1, 
+           answer = $2, 
+           content = $3, 
+           content_type = $4,
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $5`,
       [question, answer, content || null, content_type || null, questionId]
     );
 
+    // Si hay contenido nuevo, actualizar o insertar en media_files
+    if (content) {
+      await client.query(
+        `INSERT INTO media_files (file_path, question_id) 
+         VALUES ($1, $2)
+         ON CONFLICT (question_id) 
+         DO UPDATE SET file_path = EXCLUDED.file_path`,
+        [content, questionId]
+      );
+    }
+
+    await client.query('COMMIT');
     res.json({ message: 'Pregunta actualizada correctamente' });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error al actualizar pregunta:', error);
-    res.status(500).json({ message: 'Error del servidor' });
+    res.status(500).json({ message: 'Error del servidor al actualizar la pregunta' });
+  } finally {
+    client.release();
   }
 });
 
 // Eliminar pregunta
 router.delete('/:id', authMiddleware, async (req, res) => {
   const client = await pool.connect();
+  
   try {
     await client.query('BEGIN');
-
+    
     const questionId = req.params.id;
 
-    const question = await client.query('SELECT * FROM questions WHERE id = $1', [questionId]);
+    // Verificar si la pregunta existe
+    const question = await client.query(
+      'SELECT * FROM questions WHERE id = $1',
+      [questionId]
+    );
+
     if (question.rowCount === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ message: 'Pregunta no encontrada' });
     }
 
-    const fileInfo = await getFileInfo(questionId);
-    if (fileInfo) {
-      await deleteFile(fileInfo.file_path);
+    // Obtener y eliminar archivo asociado
+    const fileInfo = await client.query(
+      'SELECT * FROM media_files WHERE question_id = $1',
+      [questionId]
+    );
+
+    if (fileInfo.rows[0]) {
+      await deleteFile(fileInfo.rows[0].file_path);
     }
 
+    // Eliminar registros en orden correcto
     await client.query('DELETE FROM media_files WHERE question_id = $1', [questionId]);
     await client.query('DELETE FROM questions WHERE id = $1', [questionId]);
 
     await client.query('COMMIT');
-
     res.json({ message: 'Pregunta eliminada correctamente' });
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error al eliminar pregunta:', error);
-    res.status(500).json({ message: 'Error del servidor' });
+    res.status(500).json({ message: 'Error del servidor al eliminar la pregunta' });
   } finally {
     client.release();
   }
