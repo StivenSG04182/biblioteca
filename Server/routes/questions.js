@@ -152,22 +152,35 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
 // Eliminar pregunta
 router.delete('/:id', authMiddleware, async (req, res) => {
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
+
     const questionId = req.params.id;
 
-    const question = await pool.query('SELECT * FROM questions WHERE id = $1', [questionId]);
-    if (question.rowCount === 0) return res.status(404).json({ message: 'Pregunta no encontrada' });
+    const question = await client.query('SELECT * FROM questions WHERE id = $1', [questionId]);
+    if (question.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Pregunta no encontrada' });
+    }
 
     const fileInfo = await getFileInfo(questionId);
-    if (fileInfo) await deleteFile(fileInfo.file_path);
+    if (fileInfo) {
+      await deleteFile(fileInfo.file_path);
+    }
 
-    await pool.query('DELETE FROM media_files WHERE question_id = $1', [questionId]);
-    await pool.query('DELETE FROM questions WHERE id = $1', [questionId]);
+    await client.query('DELETE FROM media_files WHERE question_id = $1', [questionId]);
+    await client.query('DELETE FROM questions WHERE id = $1', [questionId]);
+
+    await client.query('COMMIT');
 
     res.json({ message: 'Pregunta eliminada correctamente' });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error al eliminar pregunta:', error);
     res.status(500).json({ message: 'Error del servidor' });
+  } finally {
+    client.release();
   }
 });
 
