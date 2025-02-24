@@ -15,6 +15,13 @@ export const executeTransaction = async (callback) => {
   }
 };
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
 export const paginate = async (queryText, params, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
   const countQuery = `SELECT COUNT(*) FROM (${queryText}) AS count_query`;
