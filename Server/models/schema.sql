@@ -86,7 +86,9 @@ CREATE TABLE activity_log (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO users (id, email, password, created_at) 
+
+-- Modificar la inserción de usuarios para usar bcrypt y dejar que SERIAL maneje los IDs
+INSERT INTO users (email, password, created_at) 
 VALUES 
-(1, 'biblioteca9101@sena.edu.co', '123456', CURRENT_TIMESTAMP),
-(2, 'stivensg04182@gmail.com', '987654', CURRENT_TIMESTAMP);
+('biblioteca9101@sena.edu.co', '$2a$10$SQZ05Sr9RKw9MBKLdnQsZ.QwoIxINNsFUKl296i0NzCXTd2uzU/gm', CURRENT_TIMESTAMP),
+('stivensg04182@gmail.com', '$2a$10$SQZ05Sr9RKw9MBKLdnQsZ.QwoIxINNsFUKl296i0NzCXTd2uzU/gm', CURRENT_TIMESTAMP);
