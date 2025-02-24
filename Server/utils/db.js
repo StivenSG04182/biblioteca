@@ -16,13 +16,21 @@ export const executeTransaction = async (callback) => {
 };
 
 const { Pool } = require('pg');
+require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false, // Necesario para Render
+  },
 });
+
+pool.connect()
+  .then(() => console.log('✅ Conectado a Supabase'))
+  .catch(err => console.error('❌ Error de conexión:', err));
+
+module.exports = pool;
+
 
 export const paginate = async (queryText, params, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
