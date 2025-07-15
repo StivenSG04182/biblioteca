@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
       set({ token, user, isAuthenticated: true });
     } catch (error) {
       console.error('Login error:', error);
-      throw new Error('Invalid credentials');
+      throw new Error('Credenciales inválidas');
     }
   },
 

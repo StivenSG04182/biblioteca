@@ -12,7 +12,7 @@ function Dashboard() {
   const logout = useAuthStore((state) => state.logout);
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
+    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
       logout();
       navigate('/');
     }
@@ -26,7 +26,7 @@ function Dashboard() {
       <div className="w-64 bg-gray-900 border-r border-gray-700">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-white">ODILA</h1>
-          <p className="text-gray-400 text-sm">Admin Dashboard</p>
+          <p className="text-gray-400 text-sm">Panel de Administración</p>
         </div>
 
         <nav className="mt-6">
@@ -39,7 +39,7 @@ function Dashboard() {
             }`}
           >
             <Home className="w-5 h-5" />
-            Home
+            Inicio
           </Link>
 
           <Link
@@ -51,7 +51,7 @@ function Dashboard() {
             }`}
           >
             <User className="w-5 h-5" />
-            Profile
+            Perfil
           </Link>
 
           <Link
@@ -63,7 +63,7 @@ function Dashboard() {
             }`}
           >
             <MessageSquare className="w-5 h-5" />
-            Chat Management
+            Gestión de Chat
           </Link>
 
           <button
@@ -71,7 +71,7 @@ function Dashboard() {
             className="w-full flex items-center gap-3 px-6 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800"
           >
             <LogOut className="w-5 h-5" />
-            Logout
+            Cerrar Sesión
           </button>
         </nav>
       </div>

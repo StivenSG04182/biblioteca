@@ -40,13 +40,13 @@ function DashboardHome() {
 
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold mb-6">Dashboard Overview</h2>
+      <h2 className="text-2xl font-bold mb-6">Resumen del Panel</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-gray-900 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Total Visits</p>
+              <p className="text-gray-400 text-sm">Total de Visitas</p>
               <p className="text-2xl font-bold">{stats.totalVisits}</p>
             </div>
             <Users className="w-8 h-8 text-cyan-500" />
@@ -56,7 +56,7 @@ function DashboardHome() {
         <div className="bg-gray-900 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Available Questions</p>
+              <p className="text-gray-400 text-sm">Preguntas Disponibles</p>
               <p className="text-2xl font-bold">{stats.totalQuestions}</p>
             </div>
             <MessageSquare className="w-8 h-8 text-cyan-500" />
@@ -66,7 +66,7 @@ function DashboardHome() {
         <div className="bg-gray-900 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Most Asked</p>
+              <p className="text-gray-400 text-sm">Más Consultada</p>
               <p className="text-sm text-gray-300 mt-1">{stats.mostAskedQuestion}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-green-500" />
@@ -76,7 +76,7 @@ function DashboardHome() {
         <div className="bg-gray-900 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Least Asked</p>
+              <p className="text-gray-400 text-sm">Menos Consultada</p>
               <p className="text-sm text-gray-300 mt-1">{stats.leastAskedQuestion}</p>
             </div>
             <TrendingDown className="w-8 h-8 text-red-500" />
@@ -85,7 +85,7 @@ function DashboardHome() {
       </div>
 
       <div className="bg-gray-900 rounded-lg p-6">
-        <h3 className="text-xl font-bold mb-4">Recent Activity</h3>
+        <h3 className="text-xl font-bold mb-4">Actividad Reciente</h3>
         <div className="space-y-4">
           {stats.recentActivity.map((activity) => (
             <div key={activity.id} className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg">

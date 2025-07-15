@@ -17,11 +17,11 @@ function DashboardProfile() {
     setIsLoading(true);
     try {
       await axios.put('/api/users/email', { email });
-      toast.success('Email updated successfully');
+      toast.success('Correo actualizado exitosamente');
       logout();
       navigate('/');
     } catch (error) {
-      toast.error('Failed to update email');
+      toast.error('Error al actualizar el correo');
     } finally {
       setIsLoading(false);
     }
@@ -35,11 +35,11 @@ function DashboardProfile() {
         currentPassword,
         newPassword
       });
-      toast.success('Password updated successfully');
+      toast.success('Contraseña actualizada exitosamente');
       logout();
       navigate('/');
     } catch (error) {
-      toast.error('Failed to update password');
+      toast.error('Error al actualizar la contraseña');
     } finally {
       setIsLoading(false);
     }
@@ -47,15 +47,15 @@ function DashboardProfile() {
 
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
+      <h2 className="text-2xl font-bold mb-6">Configuración del Perfil</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-gray-900 rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-4">Update Email</h3>
+          <h3 className="text-xl font-bold mb-4">Actualizar Correo</h3>
           <form onSubmit={handleUpdateEmail} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
-                New Email Address
+                Nueva Dirección de Correo
               </label>
               <input
                 type="email"
@@ -72,17 +72,17 @@ function DashboardProfile() {
               disabled={isLoading}
               className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50"
             >
-              Update Email
+              Actualizar Correo
             </button>
           </form>
         </div>
 
         <div className="bg-gray-900 rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-4">Change Password</h3>
+          <h3 className="text-xl font-bold mb-4">Cambiar Contraseña</h3>
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
-                Current Password
+                Contraseña Actual
               </label>
               <input
                 type="password"
@@ -95,7 +95,7 @@ function DashboardProfile() {
 
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
-                New Password
+                Nueva Contraseña
               </label>
               <input
                 type="password"
@@ -111,7 +111,7 @@ function DashboardProfile() {
               disabled={isLoading}
               className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50"
             >
-              Update Password
+              Actualizar Contraseña
             </button>
           </form>
         </div>
